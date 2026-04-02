@@ -13,11 +13,11 @@ return new class extends Migration
     {
         Schema::create('projects', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('client_id')->constrained()->onDelete('cascade');
-            $table->string('title');
+            $table->foreignId('client_id')->constrained()->onDelete('cascade')->index();
+            $table->string('title')->index();
             $table->text('description')->nullable();
             $table->decimal('total_amount',10,2)->default(0);
-            $table->enum('status',['draft','active','completed','paused','canceled'])->default('draft');
+            $table->enum('status',['draft','active','completed','paused','canceled'])->default('draft')->index();
             $table->text('notes')->nullable();
             $table->timestamps();
         });

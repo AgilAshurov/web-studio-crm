@@ -13,12 +13,12 @@ return new class extends Migration
     {
         Schema::create('transactions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('invoice_id')->constrained()->onDelete('cascade');
-            $table->enum('type',['debit','credit','refund']);
+            $table->foreignId('invoice_id')->constrained()->onDelete('cascade')->index();
+            $table->enum('type',['debit','credit','refund'])->index();
             $table->decimal('amount',10,2);
-            $table->enum('status',['pending','success','failed','reversed'])->default('pending');
+            $table->enum('status',['pending','success','failed','reversed'])->default('pending')->index();
             $table->string('reference')->unique();
-            $table->date('date');
+            $table->date('date')->index();
             $table->timestamps();
         });
     }

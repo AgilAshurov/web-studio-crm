@@ -16,13 +16,13 @@ return new class extends Migration
             $table->foreignId('project_id')->nullable()->constrained()->onDelete('cascade');
             $table->foreignId('client_id')->constrained()->onDelete('cascade');
             $table->foreignId('subscription_id')->nullable()->constrained()->onDelete('cascade');
-            $table->date('period_start');
-            $table->date('period_end');
+            $table->date('period_start')->index();
+            $table->date('period_end')->index();
             $table->decimal('amount',10,2);
             $table->decimal('paid_amount',10,2)->default(0);
-            $table->date('payment_date')->nullable();
+            $table->date('payment_date')->nullable()->index();
             $table->enum('payment_method',['cash','transfer'])->nullable();
-            $table->enum('status',['pending','partially_paid','paid','overdue','canceled'])->default('pending');
+            $table->enum('status',['pending','partially_paid','paid','overdue','canceled'])->default('pending')->index();
             $table->text('notes')->nullable();
             $table->timestamps();
         });

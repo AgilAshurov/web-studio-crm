@@ -13,12 +13,12 @@ return new class extends Migration
     {
         Schema::create('clients', function (Blueprint $table) {
             $table->id();
-            $table->string('company_name');
+            $table->string('company_name')->index();
             $table->string('website_url')->nullable();
             $table->string('server_info')->nullable();
             $table->json('billing_contact')->nullable();
             $table->json('tech_contact')->nullable();
-            $table->enum('status', ['active','inactive','prospect'])->default('prospect');
+            $table->enum('status', ['active','inactive','prospect'])->default('prospect')->index();
             $table->text('notes')->nullable();
             $table->timestamps();
         });

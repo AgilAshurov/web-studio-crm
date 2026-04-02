@@ -13,14 +13,14 @@ return new class extends Migration
     {
         Schema::create('subscriptions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('client_id')->constrained()->onDelete('cascade');
-            $table->string('title');
+            $table->foreignId('client_id')->constrained()->onDelete('cascade')->index();
+            $table->string('title')->index();
             $table->decimal('price',10,2);
-            $table->enum('billing_period',['1month','1year']);
-            $table->date('start_date');
-            $table->date('next_invoice_date')->nullable();
+            $table->enum('billing_period',['month','year'])->index();
+            $table->date('start_date')->index();
+            $table->date('next_invoice_date')->nullable()->index();
             $table->enum('payment_method',['cash','transfer'])->default('cash');
-            $table->enum('status',['active','paused','canceled','expired'])->default('active');
+            $table->enum('status',['active','paused','canceled','expired'])->default('active')->index();
             $table->text('notes')->nullable();
             $table->timestamps();
         });
