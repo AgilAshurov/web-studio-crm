@@ -12,7 +12,7 @@ class Project extends Model
     protected $fillable = [
         'client_id','title','description','total_amount','status','notes'
     ];
-
+    protected $casts = ['notes'=>'array'];
     public function client() { return $this->belongsTo(Client::class); }
     public function invoices() { return $this->hasMany(Invoice::class); }
 }

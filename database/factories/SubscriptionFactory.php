@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\Subscription;
+use App\Models\Client;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class SubscriptionFactory extends Factory
@@ -12,15 +13,21 @@ class SubscriptionFactory extends Factory
     public function definition(): array
     {
         return [
-            'title' => $this->faker->word(),
-            'price' => $this->faker->randomFloat(2, 50, 500),
-            'billing_period' => $this->faker->randomElement(['month','year']),
+            'client_id' => Client::factory(),
+            'title' => $this->faker->sentence(2),
+            'price' => $this->faker->randomFloat(2, 10, 500),
+            'billing_period' => $this->faker->randomElement(['monthly','yearly']), // ✅ совпадает с миграцией
             'start_date' => $this->faker->date(),
-            'next_invoice_date' => $this->faker->date(),
+            'next_invoice_date' => $this->faker->optional()->date(),
             'payment_method' => $this->faker->randomElement(['cash','transfer']),
             'status' => $this->faker->randomElement(['active','paused','canceled','expired']),
-            'notes' => $this->faker->sentence(),
+            'notes' => [
+                'comment' => $this->faker->sentence(),
+                'tags' => $this->faker->words(3),
+            ],
         ];
     }
 }
+
+
 

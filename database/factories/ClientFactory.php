@@ -13,12 +13,24 @@ class ClientFactory extends Factory
     {
         return [
             'company_name' => $this->faker->company(),
-            'website_url' => $this->faker->url(),
-            'server_info' => $this->faker->domainWord(),
-            'billing_contact' => ['name'=>$this->faker->name(),'email'=>$this->faker->email()],
-            'tech_contact' => ['name'=>$this->faker->name(),'email'=>$this->faker->email()],
+            'website_url' => $this->faker->optional()->url(),
+            'server_info' => $this->faker->optional()->ipv4(),
+            'billing_contact' => [
+                'name' => $this->faker->name(),
+                'email' => $this->faker->safeEmail(),
+                'phone' => $this->faker->phoneNumber(),
+            ],
+            'tech_contact' => [
+                'name' => $this->faker->name(),
+                'email' => $this->faker->safeEmail(),
+                'phone' => $this->faker->phoneNumber(),
+            ],
             'status' => $this->faker->randomElement(['active','inactive','prospect']),
-            'notes' => $this->faker->sentence(),
+            'notes' => [
+                'comment' => $this->faker->sentence(),
+                'tags' => $this->faker->words(3),
+            ],
         ];
     }
 }
+

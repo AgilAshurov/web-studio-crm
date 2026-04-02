@@ -14,12 +14,15 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'email_verified_at',
     ];
 
     protected $hidden = [
         'password',
         'remember_token',
     ];
+
+    protected $casts = ['email_verified_at' => 'datetime'];
 
     protected function casts(): array
     {

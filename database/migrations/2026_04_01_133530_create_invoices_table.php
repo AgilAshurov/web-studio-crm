@@ -13,17 +13,17 @@ return new class extends Migration
     {
         Schema::create('invoices', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('project_id')->nullable()->constrained()->onDelete('cascade');
-            $table->foreignId('client_id')->constrained()->onDelete('cascade');
-            $table->foreignId('subscription_id')->nullable()->constrained()->onDelete('cascade');
-            $table->date('period_start')->index();
-            $table->date('period_end')->index();
+            $table->foreignId('client_id')->constrained()->onDelete('restrict');
+            $table->foreignId('project_id')->nullable()->constrained()->onDelete('restrict');
+            $table->foreignId('subscription_id')->nullable()->constrained()->onDelete('restrict');
+            $table->date('billing_period_start')->index();
+            $table->date('billing_period_end')->index();
             $table->decimal('amount',10,2);
             $table->decimal('paid_amount',10,2)->default(0);
-            $table->date('payment_date')->nullable()->index();
+            $table->timestamp('payment_date')->nullable()->index();
             $table->enum('payment_method',['cash','transfer'])->nullable();
             $table->enum('status',['pending','partially_paid','paid','overdue','canceled'])->default('pending')->index();
-            $table->text('notes')->nullable();
+            $table->json('notes')->nullable();
             $table->timestamps();
         });
     }

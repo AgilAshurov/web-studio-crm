@@ -19,7 +19,7 @@ return new class extends Migration
             $table->json('billing_contact')->nullable();
             $table->json('tech_contact')->nullable();
             $table->enum('status', ['active','inactive','prospect'])->default('prospect')->index();
-            $table->text('notes')->nullable();
+            $table->json('notes')->nullable();
             $table->timestamps();
         });
     }

@@ -3,6 +3,9 @@
 namespace Database\Factories;
 
 use App\Models\Invoice;
+use App\Models\Client;
+use App\Models\Project;
+use App\Models\Subscription;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class InvoiceFactory extends Factory
@@ -11,19 +14,26 @@ class InvoiceFactory extends Factory
 
     public function definition(): array
     {
-        return [
-            'period_start' => $this->faker->date(),
-            'period_end' => $this->faker->date(),
-            'amount' => $this->faker->randomFloat(2, 100, 10000),
-            'paid_amount' => $this->faker->randomFloat(2, 0, 10000),
-            'payment_date' => $this->faker->optional()->date(),
-            'payment_method' => $this->faker->randomElement(['cash','transfer']),
-            'status' => $this->faker->randomElement(['pending','partially_paid','paid','overdue','canceled']),
-            'notes' => $this->faker->sentence(),
+        $start = $this->faker->dateTimeThisYear();
+        $end = (clone $start)->modify('+1 month');
 
-            'project_id' => null,
-            'subscription_id' => null,
+        return [
+            'client_id' => Client::factory(),
+            'project_id' => $this->faker->optional()->randomElement([Project::factory()]),
+            'subscription_id' => $this->faker->optional()->randomElement([Subscription::factory()]),
+            'billing_period_start' => $start,
+            'billing_period_end' => $end,
+            'amount' => $this->faker->randomFloat(2, 100, 5000),
+            'paid_amount' => $this->faker->randomFloat(2, 0, 5000),
+            'payment_date' => $this->faker->optional()->dateTimeThisYear(),
+            'payment_method' => $this->faker->optional()->randomElement(['cash','transfer']),
+            'status' => $this->faker->randomElement(['pending','partially_paid','paid','overdue','canceled']),
+            'notes' => [
+                'comment' => $this->faker->sentence(),
+                'tags' => $this->faker->words(3),
+            ],
         ];
     }
 }
+
 

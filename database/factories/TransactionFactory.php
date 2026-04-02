@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\Transaction;
+use App\Models\Invoice;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class TransactionFactory extends Factory
@@ -12,12 +13,14 @@ class TransactionFactory extends Factory
     public function definition(): array
     {
         return [
-            'type' => $this->faker->randomElement(['debit','credit','refund']),
-            'amount' => $this->faker->randomFloat(2, 10, 5000),
+            'invoice_id' => Invoice::factory(),
+            'type' => $this->faker->randomElement(['debit','refund']),
+            'amount' => $this->faker->randomFloat(2, 10, 1000),
             'status' => $this->faker->randomElement(['pending','success','failed','reversed']),
-            'reference' => $this->faker->uuid(),
-            'date' => $this->faker->date(),
+            'reference' => $this->faker->unique()->uuid,
+            'date' => $this->faker->optional()->dateTimeThisYear(),
         ];
     }
 }
+
 

@@ -17,6 +17,7 @@ class Client extends Model
     protected $casts = [
         'billing_contact' => 'array',
         'tech_contact' => 'array',
+        'notes'=>'array',
     ];
 
     public function projects() { return $this->hasMany(Project::class); }
