@@ -12,12 +12,19 @@ class SubscriptionFactory extends Factory
 
     public function definition(): array
     {
+        $start = $this->faker->dateTimeThisYear();
+
+        // случайно выбираем +1 месяц или +1 год
+        $end = fake()->boolean()
+            ? (clone $start)->modify('+1 month')
+            : (clone $start)->modify('+1 year');
         return [
             'client_id' => Client::factory(),
             'title' => $this->faker->sentence(2),
             'price' => $this->faker->randomFloat(2, 10, 500),
             'billing_period' => $this->faker->randomElement(['monthly','yearly']), // ✅ совпадает с миграцией
             'start_date' => $this->faker->date(),
+            'end_date' => $this->faker->optional()->date(),
             'next_invoice_date' => $this->faker->optional()->date(),
             'payment_method' => $this->faker->randomElement(['cash','transfer']),
             'status' => $this->faker->randomElement(['active','paused','canceled','expired']),

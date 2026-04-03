@@ -9,10 +9,19 @@ class Transaction extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['invoice_id','type','amount','status','reference','date'];
+    protected $fillable = ['invoice_id','type','currency','amount','status','reference','date'];
     protected $casts = ['date'=>'datetime'];
 
     public function invoice(){ return $this->belongsTo(Invoice::class); }
+
+    public function applyToInvoice(): void
+    {
+        if ($this->status === 'success') {
+            $invoice = $this->invoice;
+            $invoice->updateStatus();
+            $invoice->handleOverpayment();
+        }
+    }
 }
 
 

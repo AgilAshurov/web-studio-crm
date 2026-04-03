@@ -15,10 +15,11 @@ return new class extends Migration
             $table->id();
             $table->foreignId('invoice_id')->constrained()->onDelete('restrict')->index();
             $table->enum('type',['debit','refund'])->index();
+            $table->string('currency',3)->default('AZN')->index();
             $table->decimal('amount',10,2);
-            $table->enum('status',['pending','success','failed','reversed'])->default('pending')->index();
+            $table->enum('status',['pending','success','failed'])->default('pending')->index();
             $table->uuid('reference')->unique();
-            $table->timestamp('date')->nullable()->index();
+            $table->timestamp('date')->index();
             $table->timestamps();
         });
     }

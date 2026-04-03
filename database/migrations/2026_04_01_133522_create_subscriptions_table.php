@@ -18,6 +18,7 @@ return new class extends Migration
             $table->decimal('price',10,2);
             $table->enum('billing_period',['monthly','yearly'])->index();
             $table->date('start_date')->index();
+            $table->date('end_date')->nullable()->index();
             $table->date('next_invoice_date')->nullable()->index();
             $table->enum('payment_method',['cash','transfer'])->default('cash');
             $table->enum('status',['active','paused','canceled','expired'])->default('active')->index();

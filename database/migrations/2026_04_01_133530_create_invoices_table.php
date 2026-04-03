@@ -18,11 +18,12 @@ return new class extends Migration
             $table->foreignId('subscription_id')->nullable()->constrained()->onDelete('restrict');
             $table->date('billing_period_start')->index();
             $table->date('billing_period_end')->index();
+            $table->string('currency',3)->default('AZN')->index();
             $table->decimal('amount',10,2);
-            $table->decimal('paid_amount',10,2)->default(0);
+            $table->decimal('factical_amount',10,2)->default(0);
             $table->timestamp('payment_date')->nullable()->index();
             $table->enum('payment_method',['cash','transfer'])->nullable();
-            $table->enum('status',['pending','partially_paid','paid','overdue','canceled'])->default('pending')->index();
+            $table->enum('status',['pending','partially_paid','refuned','partially_refuned','paid','canceled'])->default('pending')->index();
             $table->json('notes')->nullable();
             $table->timestamps();
         });

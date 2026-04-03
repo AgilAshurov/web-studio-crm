@@ -23,11 +23,12 @@ class InvoiceFactory extends Factory
             'subscription_id' => $this->faker->optional()->randomElement([Subscription::factory()]),
             'billing_period_start' => $start,
             'billing_period_end' => $end,
+            'currency' => $this->faker->randomElement(['AZN','USD','EUR']),
             'amount' => $this->faker->randomFloat(2, 100, 5000),
-            'paid_amount' => $this->faker->randomFloat(2, 0, 5000),
+            'factical_amount' => $this->faker->randomFloat(2, 0, 5000),
             'payment_date' => $this->faker->optional()->dateTimeThisYear(),
             'payment_method' => $this->faker->optional()->randomElement(['cash','transfer']),
-            'status' => $this->faker->randomElement(['pending','partially_paid','paid','overdue','canceled']),
+            'status' => $this->faker->randomElement(['pending','paid','partially_paid','refuned','partially_refuned','canceled']),
             'notes' => [
                 'comment' => $this->faker->sentence(),
                 'tags' => $this->faker->words(3),
@@ -35,5 +36,3 @@ class InvoiceFactory extends Factory
         ];
     }
 }
-
-
