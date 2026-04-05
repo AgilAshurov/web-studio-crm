@@ -23,7 +23,7 @@ class Subscription extends Model
             'subscription_id' => $this->id,
             'currency' => $this->currency ?? 'AZN',
             'amount' => $this->price,
-            'factual_amount' => 0,
+            'factical_amount' => 0,
             'status' => 'pending',
             'billing_period_start' => $this->start_date,
             'billing_period_end' => $this->end_date,

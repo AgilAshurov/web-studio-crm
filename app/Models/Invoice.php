@@ -41,7 +41,7 @@ class Invoice extends Model
         //последняя транзакция
         if (!$lastTransaction) {
             $this->status = 'pending';
-            $this->factual_amount = 0;
+            $this->factical_amount = 0;
             $this->save();
             return;
         }
@@ -57,13 +57,13 @@ class Invoice extends Model
         //частичная изъятие средств или полное
         if($lastTransaction->type == 'refund'){
             $this->factical_amount -= $lastTransaction->amount;
-            $this->status = $this->factical_amount <= 0 ? 'refuned' : 'partially_refuned';
+            $this->status = $this->factical_amount <= 0 ? 'refunded' : 'partially_refunded';
         }
         $this->save();
     }
     public function handleOverpayment() : void{
 
-        $overpaid = $this->factual_amount - $this->amount;
+        $overpaid = $this->factical_amount - $this->amount;
 
         if($overpaid <= 0){
             return;
@@ -84,22 +84,20 @@ class Invoice extends Model
             }
 
             $apply = min($overpaid, $needed);
-            $invoice->factual_amount += $apply;
+            $invoice->factical_amount += $apply;
             $invoice->updateStatus();
 
             $overpaid -= $apply;
+        }
+        while ($overpaid > 0 && $this->subscription) {
+            $apply = min($overpaid, $this->subscription->price);
 
-            if($overpaid > 0){
-                $nextInvoice = Invoice::where('subscription_id', $invoice->subscription_id)
-                    ->where('billing_period_start', '<', $invoice->billing_period_start)
-                    ->orderBy('billing_period_start')
-                    ->first();
-                if($nextInvoice){
-                    $nextInvoice->factual_amount += $overpaid;
-                    $nextInvoice->updateStatus();
-                }
-            }
+            $newInvoice = $this->subscription->createInvoice();
+            $newInvoice->factical_amount = $apply;
+            $newInvoice->status = $apply >= $newInvoice->amount ? 'paid' : 'partially_paid';
+            $newInvoice->save();
 
+            $overpaid -= $apply;
         }
     }
 }

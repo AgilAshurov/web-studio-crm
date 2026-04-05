@@ -23,7 +23,7 @@ return new class extends Migration
             $table->decimal('factical_amount',10,2)->default(0);
             $table->timestamp('payment_date')->nullable()->index();
             $table->enum('payment_method',['cash','transfer'])->nullable();
-            $table->enum('status',['pending','partially_paid','refuned','partially_refuned','paid','canceled'])->default('pending')->index();
+            $table->enum('status',['pending','partially_paid','refunded','partially_refunded','paid','canceled'])->default('pending')->index();
             $table->json('notes')->nullable();
             $table->timestamps();
         });
