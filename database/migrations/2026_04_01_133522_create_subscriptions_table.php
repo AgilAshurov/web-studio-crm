@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('client_id')->constrained()->onDelete('restrict')->index();
             $table->string('title')->index();
+            $table->string('currency', 3);
             $table->decimal('price',10,2);
             $table->enum('billing_period',['monthly','yearly'])->index();
             $table->date('start_date')->index();

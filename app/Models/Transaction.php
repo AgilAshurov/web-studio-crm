@@ -18,9 +18,27 @@ class Transaction extends Model
     {
         if ($this->status === 'success') {
             $invoice = $this->invoice;
-            $invoice->updateStatus();
+            $invoice->$invoice->updateStatusByLastTransaction();
             $invoice->handleOverpayment();
         }
+    }
+    protected static function booted()
+    {
+        static::created(function ($transaction) {
+            $invoice = $transaction->invoice;
+
+            if ($transaction->type === 'debit') {
+                $invoice->updateStatusByLastTransaction();
+                $invoice->handleOverpayment();
+            }
+
+            if ($transaction->type === 'refund') {
+                if ($invoice->factical_amount <= 0) {
+                    throw new \Exception("Нельзя вернуть средства: баланс подписки равен 0");
+                }
+                $invoice->updateStatusByLastTransaction();
+            }
+        });
     }
 }
 

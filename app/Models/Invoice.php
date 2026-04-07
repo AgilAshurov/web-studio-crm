@@ -17,50 +17,51 @@ class Invoice extends Model
     public function subscription(){ return $this->belongsTo(Subscription::class); }
     public function transactions(){ return $this->hasMany(Transaction::class); }
 
-    public function calculatePaidAmount() : float{
-        return $this->transactions()
-            ->where('status','success')
-            ->where('type', 'debit')
-            ->where('amount');
-    }
-
-    public function calculateRefundAmount() : float{
-        return $this->transactions()
-            ->where('status','success')
-            ->where('type', 'refund')
-            ->where('amount');
-    }
-
-    public function updateStatusByLastTransaction() : void
+    protected static function booted()
     {
-        //Если успешная статус по последний транзакции
+        static::created(function ($invoice) {
+            $invoice->handleOverpayment();
+        });
+
+        static::updated(function ($invoice) {
+            $invoice->updateStatusByLastTransaction();
+        });
+    }
+    public function getFacticalAmountAttribute()
+    {
+        $debits = $this->transactions()->where('type', 'debit')->sum('amount');
+        $refunds = $this->transactions()->where('type', 'refund')->sum('amount');
+        return $debits - $refunds;
+    }
+    public function updateStatusByLastTransaction(): void
+    {
         $lastTransaction = $this->transactions()
             ->where('status','success')
             ->orderByDesc('date')
             ->first();
-        //последняя транзакция
+
         if (!$lastTransaction) {
             $this->status = 'pending';
             $this->factical_amount = 0;
-            $this->save();
             return;
         }
-        //отменненая транзакция
-        if($this->status == 'canceled'){
-            return;
-        }
-        //частичная оплата или полная
-        if($lastTransaction->type == 'debit'){
+
+        if ($this->status === 'canceled') return;
+
+        if ($lastTransaction->type === 'debit') {
             $this->factical_amount += $lastTransaction->amount;
             $this->status = $this->factical_amount >= $this->amount ? 'paid' : 'partially_paid';
         }
-        //частичная изъятие средств или полное
-        if($lastTransaction->type == 'refund'){
+
+        if ($lastTransaction->type === 'refund') {
+            if ($this->factical_amount <= 0) {
+                throw new \Exception("Нельзя вернуть средства: баланс подписки равен 0");
+            }
             $this->factical_amount -= $lastTransaction->amount;
             $this->status = $this->factical_amount <= 0 ? 'refunded' : 'partially_refunded';
         }
-        $this->save();
     }
+
     public function handleOverpayment() : void{
 
         $overpaid = $this->factical_amount - $this->amount;
@@ -85,7 +86,7 @@ class Invoice extends Model
 
             $apply = min($overpaid, $needed);
             $invoice->factical_amount += $apply;
-            $invoice->updateStatus();
+            $invoice->updateStatusByLastTransaction();
 
             $overpaid -= $apply;
         }

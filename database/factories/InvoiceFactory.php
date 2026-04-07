@@ -28,7 +28,7 @@ class InvoiceFactory extends Factory
             'factical_amount' => $this->faker->randomFloat(2, 0, 5000),
             'payment_date' => $this->faker->optional()->dateTimeThisYear(),
             'payment_method' => $this->faker->optional()->randomElement(['cash','transfer']),
-            'status' => $this->faker->randomElement(['pending','paid','partially_paid','refuned','partially_refuned','canceled']),
+            'status' => $this->faker->randomElement(['pending','paid','partially_paid','refunded','partially_refunded','canceled']),
             'notes' => [
                 'comment' => $this->faker->sentence(),
                 'tags' => $this->faker->words(3),

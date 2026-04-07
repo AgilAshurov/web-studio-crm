@@ -19,7 +19,7 @@ class TransactionFactory extends Factory
             'amount' => $this->faker->randomFloat(2, 10, 1000),
             'status' => $this->faker->randomElement(['pending','success','failed']),
             'reference' => $this->faker->unique()->uuid,
-            'date' => $this->faker->optional()->dateTimeThisYear(),
+            'date' => $this->faker->dateTime(),
         ];
     }
 }
