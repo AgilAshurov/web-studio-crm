@@ -33,6 +33,7 @@ class Subscription extends Model
     }
 
     // 🔧 Метод для создания инвойса
+    /*
     public function createInvoice(Carbon $periodStart = null, Carbon $periodEnd = null): Invoice
     {
         $periodStart = $periodStart ?? $this->start_date ?? now();
@@ -71,5 +72,5 @@ class Subscription extends Model
         static::deleted(function ($subscription) {
             $subscription->invoices()->delete();
         });
-    }
+    }*/
 }

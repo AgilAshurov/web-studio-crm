@@ -17,7 +17,7 @@ class Invoice extends Model
     public function subscription(){ return $this->belongsTo(Subscription::class); }
     public function transactions(){ return $this->hasMany(Transaction::class); }
 
-    protected static function booted()
+    /*protected static function booted()
     {
         static::created(function ($invoice) {
             $invoice->handleOverpayment();
@@ -26,8 +26,8 @@ class Invoice extends Model
         static::updated(function ($invoice) {
             $invoice->updateStatusByLastTransaction();
         });
-    }
-    public function getFacticalAmountAttribute()
+    }*/
+   /* public function getFacticalAmountAttribute()
     {
         $debits = $this->transactions()->where('type', 'debit')->sum('amount');
         $refunds = $this->transactions()->where('type', 'refund')->sum('amount');
@@ -100,6 +100,6 @@ class Invoice extends Model
 
             $overpaid -= $apply;
         }
-    }
+    }*/
 }
 

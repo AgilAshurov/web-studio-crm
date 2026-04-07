@@ -34,17 +34,7 @@ class TestController extends Controller
         ]);
 
         // 3. Добавляем транзакции (пример: 300 + 400 = 700)
-        Transaction::create([
-            'invoice_id' => $invoice->id,
-            'type'       => 'debit',
-            'currency'   => $subscription->currency,
-            'amount'     => 300,
-            'status'     => 'success',
-            'reference'  => Str::uuid(),
-            'date'       => now(),
-        ]);
-
-        Transaction::create([
+       Transaction::create([
             'invoice_id' => $invoice->id,
             'type'       => 'debit',
             'currency'   => $subscription->currency,
@@ -54,37 +44,47 @@ class TestController extends Controller
             'date'       => now(),
         ]);
 
+      Transaction::create([
+            'invoice_id' => $invoice->id,
+            'type'       => 'debit',
+            'currency'   => $subscription->currency,
+            'amount'     => 300,
+            'status'     => 'success',
+            'reference'  => Str::uuid(),
+            'date'       => now(),
+        ]);
+
         // 4. Проверяем переплату и создаём новые подписки
-        $remaining = $invoice->factical_amount; // фактическая сумма = 700
-        $price = $subscription->price;
-        $start = Carbon::parse($subscription->end_date);
-
-        while ($remaining > 0) {
-            $amountForThis = min($remaining, $price);
-
-            $newSubscription = Subscription::create([
-                'client_id' => $subscription->client_id,
-                'currency'  => $subscription->currency,
-                'price'     => $price,
-                'status'    => 'active',
-                'start_date'=> $start,
-                'end_date'  => $start->copy()->addMonth(),
-                'title'     => 'Автоподписка',
-            ]);
-
-            // создаём инвойс для новой подписки
-            $newSubscription->invoices()->create([
-                'client_id'             => $newSubscription->client_id,
-                'amount'                => $amountForThis, // если остаток меньше цены
-                'status'                => $amountForThis < $price ? 'partial' : 'pending',
-                'billing_period_start'  => $newSubscription->start_date,
-                'billing_period_end'    => $newSubscription->end_date,
-                'currency'              => $newSubscription->currency,
-            ]);
-
-            $remaining -= $amountForThis;
-            $start = $start->copy()->addMonth();
-        }
+//        $remaining = $invoice->factical_amount; // фактическая сумма = 700
+//        $price = $subscription->price;
+//        $start = Carbon::parse($subscription->end_date);
+//
+//        while ($remaining > 0) {
+//            $amountForThis = min($remaining, $price);
+//
+//            $newSubscription = Subscription::create([
+//                'client_id' => $subscription->client_id,
+//                'currency'  => $subscription->currency,
+//                'price'     => $price,
+//                'status'    => 'active',
+//                'start_date'=> $start,
+//                'end_date'  => $start->copy()->addMonth(),
+//                'title'     => 'Автоподписка',
+//            ]);
+//
+//            // создаём инвойс для новой подписки
+//            $newSubscription->invoices()->create([
+//                'client_id'             => $newSubscription->client_id,
+//                'amount'                => $amountForThis, // если остаток меньше цены
+//                'status'                => $amountForThis < $price ? 'partial' : 'pending',
+//                'billing_period_start'  => $newSubscription->start_date,
+//                'billing_period_end'    => $newSubscription->end_date,
+//                'currency'              => $newSubscription->currency,
+//            ]);
+//
+//            $remaining -= $amountForThis;
+//            $start = $start->copy()->addMonth();
+//        }
 
         return response()->json([
             'subscriptions' => Subscription::all(),

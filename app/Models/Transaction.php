@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Events\TransactionSaved;
 
 class Transaction extends Model
 {
@@ -14,6 +15,13 @@ class Transaction extends Model
 
     public function invoice(){ return $this->belongsTo(Invoice::class); }
 
+    protected $dispatchesEvents = [
+        'saved' => TransactionSaved::class,
+    ];
+
+
+
+/*
     public function applyToInvoice(): void
     {
         if ($this->status === 'success') {
@@ -39,7 +47,7 @@ class Transaction extends Model
                 $invoice->updateStatusByLastTransaction();
             }
         });
-    }
+    }*/
 }
 
 
