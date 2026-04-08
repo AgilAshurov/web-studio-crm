@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('currency',3)->default('AZN')->index();
             $table->decimal('amount',10,2);
             $table->enum('status',['pending','success','failed'])->default('pending')->index();
-            $table->boolean('processing')->default(false);
+            //$table->boolean('processing')->default(false);
             $table->uuid('reference')->unique();
             $table->timestamp('date')->index();
             $table->timestamps();

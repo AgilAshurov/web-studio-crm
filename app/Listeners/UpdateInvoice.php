@@ -174,113 +174,117 @@
 //
 
 
-namespace App\Listeners;
 
-use App\Events\TransactionSaved;
-use App\Models\Invoice;
-use Illuminate\Support\Facades\Log;
-use Carbon\Carbon;
 
-class UpdateInvoice
-{
-    public function handle(TransactionSaved $event)
-    {
-        $transaction = $event->transaction;
-        $invoice = $transaction->invoice;
 
-        if ($transaction->status === 'success' && !$transaction->processing) {
 
-            // Работа с дебетовой транзакцией
-            if ($transaction->type === 'debit') {
-                $remaining = $transaction->amount; // остаток именно этой транзакции
-
-                // 1. закрываем текущий инвойс
-                $invoiceRemaining = $invoice->amount - $invoice->factical_amount;
-
-                if ($remaining >= $invoiceRemaining) {
-                    // закрываем полностью
-                    $invoice->factical_amount = $invoice->amount;
-                    $invoice->status = 'paid';
-                    $remaining -= $invoiceRemaining;
-                } else {
-                    // частично покрываем
-                    $invoice->factical_amount += $remaining;
-                    $invoice->status = 'partially_paid';
-                    $remaining = 0;
-                }
-
-                $invoice->save();
-                Log::info('Остаток сверхоплаты после текущего инвойса: ' . $remaining);
-
-                // 2. закрываем долги
-                if ($remaining > 0) {
-                    $debts = Invoice::where('client_id', $invoice->client_id)
-                        ->whereIn('status', ['pending', 'partially_paid'])
-                        ->where('id', '!=', $invoice->id)
-                        ->where('subscription_id', $invoice->subscription_id)
-                        ->orderBy('created_at')
-                        ->get();
-
-                    foreach ($debts as $debt) {
-                        $debtRemaining = $debt->amount - $debt->factical_amount;
-
-                        if ($remaining >= $debtRemaining) {
-                            // закрываем полностью
-                            $debt->factical_amount = $debt->amount;
-                            $debt->status = 'paid';
-                            $remaining -= $debtRemaining;
-                        } elseif ($remaining > 0) {
-                            // частично покрываем
-                            $debt->factical_amount += $remaining;
-                            $debt->status = 'partially_paid';
-                            $remaining = 0;
-                            break;
-                        }
-
-                        $debt->save();
-                    }
-                }
-
-                // 3. создаём новые инвойсы (будущие периоды)
-                if ($remaining > 0) {
-                    $price = $invoice->subscription->price;
-                    $start = Carbon::parse($invoice->subscription->end_date);
-                    $numberInvoices = ceil($remaining / $price);
-
-                    for ($i = 0; $i < $numberInvoices; $i++) {
-                        $amountForThis = min($remaining, $price);
-
-                        Invoice::create([
-                            'client_id' => $invoice->client_id,
-                            'subscription_id' => $invoice->subscription_id,
-                            'amount' => $price,
-                            'factical_amount' => $amountForThis,
-                            'status' => $amountForThis < $price ? 'partially_paid' : 'pending',
-                            'billing_period_start' => $start,
-                            'billing_period_end' => $start->copy()->addMonth(),
-                            'currency' => $invoice->currency,
-                        ]);
-
-                        $remaining -= $amountForThis;
-                        $start = $start->copy()->addMonth();
-                        Log::info('Сверхоплатой закрываем будущие инвойсы, остаток: ' . $remaining);
-                    }
-                }
-            }
-
-            // Работа с возвратами
-            if ($transaction->type === 'refund') {
-                if ($invoice->factical_amount <= 0) {
-                    throw new \Exception("Нельзя вернуть средства: баланс подписки равен 0");
-                }
-                $invoice->factical_amount -= $transaction->amount;
-                $invoice->status = $invoice->factical_amount <= 0 ? 'refunded' : 'partially_refunded';
-                $invoice->save();
-            }
-
-            // Помечаем транзакцию как обработанную
-            $transaction->processing = true;
-            $transaction->saveQuietly();
-        }
-    }
-}
+//namespace App\Listeners;
+//
+//use App\Events\TransactionSaved;
+//use App\Models\Invoice;
+//use Illuminate\Support\Facades\Log;
+//use Carbon\Carbon;
+//
+//class UpdateInvoice
+//{
+//    public function handle(TransactionSaved $event)
+//    {
+//        $transaction = $event->transaction;
+//        $invoice = $transaction->invoice;
+//
+//        if ($transaction->status === 'success' && !$transaction->processing) {
+//
+//            // Работа с дебетовой транзакцией
+//            if ($transaction->type === 'debit') {
+//                $remaining = $transaction->amount; // остаток именно этой транзакции
+//
+//                // 1. закрываем текущий инвойс
+//                $invoiceRemaining = $invoice->amount - $invoice->factical_amount;
+//
+//                if ($remaining >= $invoiceRemaining) {
+//                    // закрываем полностью
+//                    $invoice->factical_amount = $invoice->amount;
+//                    $invoice->status = 'paid';
+//                    $remaining -= $invoiceRemaining;
+//                } else {
+//                    // частично покрываем
+//                    $invoice->factical_amount += $remaining;
+//                    $invoice->status = 'partially_paid';
+//                    $remaining = 0;
+//                }
+//
+//                $invoice->save();
+//                Log::info('Остаток сверхоплаты после текущего инвойса: ' . $remaining);
+//
+//                // 2. закрываем долги
+//                if ($remaining > 0) {
+//                    $debts = Invoice::where('client_id', $invoice->client_id)
+//                        ->whereIn('status', ['pending', 'partially_paid'])
+//                        ->where('id', '!=', $invoice->id)
+//                        ->where('subscription_id', $invoice->subscription_id)
+//                        ->orderBy('created_at')
+//                        ->get();
+//
+//                    foreach ($debts as $debt) {
+//                        $debtRemaining = $debt->amount - $debt->factical_amount;
+//
+//                        if ($remaining >= $debtRemaining) {
+//                            // закрываем полностью
+//                            $debt->factical_amount = $debt->amount;
+//                            $debt->status = 'paid';
+//                            $remaining -= $debtRemaining;
+//                        } elseif ($remaining > 0) {
+//                            // частично покрываем
+//                            $debt->factical_amount += $remaining;
+//                            $debt->status = 'partially_paid';
+//                            $remaining = 0;
+//                            break;
+//                        }
+//
+//                        $debt->save();
+//                    }
+//                }
+//
+//                // 3. создаём новые инвойсы (будущие периоды)
+//                if ($remaining > 0) {
+//                    $price = $invoice->subscription->price;
+//                    $start = Carbon::parse($invoice->subscription->end_date);
+//                    $numberInvoices = ceil($remaining / $price);
+//
+//                    for ($i = 0; $i < $numberInvoices; $i++) {
+//                        $amountForThis = min($remaining, $price);
+//
+//                        Invoice::create([
+//                            'client_id' => $invoice->client_id,
+//                            'subscription_id' => $invoice->subscription_id,
+//                            'amount' => $price,
+//                            'factical_amount' => $amountForThis,
+//                            'status' => $amountForThis < $price ? 'partially_paid' : 'pending',
+//                            'billing_period_start' => $start,
+//                            'billing_period_end' => $start->copy()->addMonth(),
+//                            'currency' => $invoice->currency,
+//                        ]);
+//
+//                        $remaining -= $amountForThis;
+//                        $start = $start->copy()->addMonth();
+//                        Log::info('Сверхоплатой закрываем будущие инвойсы, остаток: ' . $remaining);
+//                    }
+//                }
+//            }
+//
+//            // Работа с возвратами
+//            if ($transaction->type === 'refund') {
+//                if ($invoice->factical_amount <= 0) {
+//                    throw new \Exception("Нельзя вернуть средства: баланс подписки равен 0");
+//                }
+//                $invoice->factical_amount -= $transaction->amount;
+//                $invoice->status = $invoice->factical_amount <= 0 ? 'refunded' : 'partially_refunded';
+//                $invoice->save();
+//            }
+//
+//            // Помечаем транзакцию как обработанную
+//            $transaction->processing = true;
+//            $transaction->saveQuietly();
+//        }
+//    }
+//}

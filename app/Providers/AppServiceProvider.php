@@ -23,7 +23,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        Event::listen(TransactionSaved::class, UpdateInvoice::class);
+//        Event::listen(TransactionSaved::class, UpdateInvoice::class);
         Schema::defaultStringLength(191);
     }
 }
