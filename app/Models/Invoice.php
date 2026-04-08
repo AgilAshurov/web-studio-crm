@@ -32,7 +32,7 @@ class Invoice extends Model
             ->sum('amount');
 
         $facticalAmount = $debits - $refunds;
-        $this->factical_amount = min($facticalAmount, $this->amount);
+        $this->factical_amount = max(0, min($facticalAmount, $this->amount));
 
         if ($this->factical_amount >= $this->amount) {
             $this->status = 'paid';
@@ -40,14 +40,20 @@ class Invoice extends Model
             $this->applyOverpayment($remaining);
         } elseif ($this->factical_amount > 0) {
             $this->status = 'partially_paid';
-        } elseif ($refunds > 0 && $this->factical_amount <= 0) {
-            $this->status = 'refunded';
+        } elseif ($refunds > 0) {
+            // вот здесь различаем полный и частичный возврат
+            if ($refunds < $debits) {
+                $this->status = 'partially_refunded';
+            } else {
+                $this->status = 'refunded';
+            }
         } else {
             $this->status = 'pending';
         }
 
         $this->saveQuietly();
     }
+
 
     public function applyOverpayment($remaining)
     {
