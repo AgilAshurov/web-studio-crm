@@ -34,29 +34,35 @@ class Invoice extends Model
         $facticalAmount = $debits - $refunds;
         $this->factical_amount = max(0, min($facticalAmount, $this->amount));
 
-        if ($this->factical_amount >= $this->amount) {
-            $this->status = 'paid';
-            $remaining = $facticalAmount - $this->amount;
-            $this->applyOverpayment($remaining);
-        } elseif ($this->factical_amount > 0) {
-            $this->status = 'partially_paid';
-        } elseif ($refunds > 0) {
-            // вот здесь различаем полный и частичный возврат
+        // Логика статусов
+        if ($refunds > 0) {
             if ($refunds < $debits) {
                 $this->status = 'partially_refunded';
             } else {
                 $this->status = 'refunded';
             }
+        } elseif ($this->factical_amount >= $this->amount) {
+            $this->status = 'paid';
+        } elseif ($this->factical_amount > 0) {
+            $this->status = 'partially_paid';
         } else {
             $this->status = 'pending';
         }
 
         $this->saveQuietly();
     }
-
-
-    public function applyOverpayment($remaining)
+    public function getFacticalAmountRaw()
     {
-        // Логика распределения переплаты по другим счетам или создание новых
+        $debits = $this->transactions()
+            ->where('status', 'success')
+            ->where('type', 'debit')
+            ->sum('amount');
+
+        $refunds = $this->transactions()
+            ->where('status', 'success')
+            ->where('type', 'refund')
+            ->sum('amount');
+
+        return $debits - $refunds; // «сырое» значение без ограничений
     }
 }
