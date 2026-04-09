@@ -54,18 +54,4 @@ class Invoice extends Model
 
         $this->saveQuietly();
     }
-    public function getFacticalAmountRaw()
-    {
-        $debits = $this->transactions()
-            ->where('status', 'success')
-            ->where('type', 'debit')
-            ->sum('amount');
-
-        $refunds = $this->transactions()
-            ->where('status', 'success')
-            ->where('type', 'refund')
-            ->sum('amount');
-
-        return $debits - $refunds; // «сырое» значение без ограничений
-    }
 }

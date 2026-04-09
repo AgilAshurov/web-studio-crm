@@ -32,7 +32,7 @@ class TestController extends Controller
         ]);
         echo "Создан инвойс #{$invoice->id}, статус: {$invoice->status}, сумма: {$invoice->amount}, фактическая: {$invoice->factical_amount}<br>";
 
-        // 3. Добавляем транзакции
+        // 3. Поступление транзакции
         $txn = Transaction::create([
             'invoice_id' => $invoice->id,
             'amount'     => 100,
