@@ -31,46 +31,49 @@ class Subscription extends Model
     {
         return $this->hasMany(Invoice::class);
     }
-
-    // 🔧 Метод для создания инвойса
-    /*
-    public function createInvoice(Carbon $periodStart = null, Carbon $periodEnd = null): Invoice
-    {
-        $periodStart = $periodStart ?? $this->start_date ?? now();
-        $periodEnd   = $periodEnd ?? $this->end_date ?? now()->addMonth();
-
-        return $this->invoices()->create([
-            'client_id'            => $this->client_id,
-            'subscription_id'      => $this->id,
-            'currency'             => $this->currency ?? 'AZN',
-            'amount'               => $this->price,
-            'factical_amount'      => 0,
-            'status'               => 'pending',
-            'billing_period_start' => $periodStart,
-            'billing_period_end'   => $periodEnd,
-        ]);
-    }
-
-    // ⚡ ORM события
     protected static function booted()
     {
-        // При создании подписки сразу создаём первый инвойс
         static::created(function ($subscription) {
-            $subscription->createInvoice();
+            echo "CREATED SUBSCRIPTION: #{$subscription->id}, Title: {$subscription->title}, Status: {$subscription->status}<br>";
         });
 
-        // При обновлении подписки
         static::updated(function ($subscription) {
-            if ($subscription->status === 'canceled') {
-                $subscription->invoices()
-                    ->where('status', 'pending')
-                    ->update(['status' => 'canceled']);
-            }
+            echo "UPDATE SUBSCRIPTION: #{$subscription->id}, Title: {$subscription->title}, Status: {$subscription->status}<br>";
         });
+    }
 
-        // При удалении подписки
-        static::deleted(function ($subscription) {
-            $subscription->invoices()->delete();
-        });
-    }*/
+    public function applyPayment($amount)
+    {
+        $unpaidInvoices = $this->invoices()
+            ->whereNotIn('status',['paid','canceled','refunded'])
+            ->orderBy('billing_period_start')
+            ->get();
+
+        foreach ($unpaidInvoices as $invoice) {
+            $needed = $invoice->amount - $invoice->factical_amount;
+            if ($needed > 0) {
+                $apply = min($amount, $needed);
+                $invoice->factical_amount += $apply;
+                $invoice->status = $invoice->factical_amount >= $invoice->amount ? 'paid' : 'partially_paid';
+                $invoice->save();
+
+                $amount -= $apply;
+                if ($amount <= 0) break;
+            }
+        }
+        $this->refreshStatus();
+    }
+    public function refreshStatus()
+    {
+        if ($this->invoices()->whereIn('status',['pending','partially_paid','partially_refunded','refunded'])->exists()) {
+            $this->status = 'paused';
+        } elseif ($this->invoices()->where('status','canceled')->exists()) {
+            $this->status = 'canceled';
+        } elseif ($this->end_date && $this->end_date < now()) {
+            $this->status = 'expired';
+        } else {
+            $this->status = 'active';
+        }
+        $this->save();
+    }
 }

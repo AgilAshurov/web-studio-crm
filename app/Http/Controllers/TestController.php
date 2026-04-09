@@ -246,5 +246,37 @@ class TestController extends Controller
             'reference'  => uniqid('TXN-'),
             'date'       => now(),
         ]);
+
+
+        $subscription = Subscription::create([
+            'client_id' => 1,
+            'title' => 'Premium Plan',
+            'currency' => 'AZN',
+            'price' => 300,
+            'billing_period' => 'monthly',
+            'start_date' => now(),
+            'status' => 'active',
+        ]);
+
+        $invoiceOld = Invoice::create([
+            'subscription_id' => $subscription->id,
+            'client_id' => 1,
+            'amount' => 200,
+            'status' => 'pending',
+            'billing_period_start' => now()->subMonths(2),
+            'billing_period_end' => now()->subMonth(),
+        ]);
+
+        $invoiceNew = Invoice::create([
+            'subscription_id' => $subscription->id,
+            'client_id' => 1,
+            'amount' => 300,
+            'status' => 'pending',
+            'billing_period_start' => now(),
+            'billing_period_end' => now()->addMonth(),
+        ]);
+
+        // Эмулируем оплату
+        $subscription->applyPayment(400);
     }
 }
