@@ -19,6 +19,21 @@ class Invoice extends Model
         return $this->hasMany(Transaction::class);
     }
 
+    protected static function booted()
+    {
+        // При создании транзакции
+        static::created(function ($invoice) {
+            echo "<br><br>CREATED INVOICE:  #{$invoice->id}, Amount: {$invoice->amount}, FAmount: {$invoice->factical_amount}, Status: {$invoice->status}<br>";
+//
+        });
+
+        // При обновлении транзакции
+        static::updated(function ($invoice) {
+            echo "UPDATE INVOICE:  #{$invoice->id}, Amount: {$invoice->amount}, FAmount: {$invoice->factical_amount}, Status: {$invoice->status}<br>";
+        });
+    }
+
+
     public function recalcFromTransactions()
     {
         $debits = $this->transactions()
@@ -32,26 +47,36 @@ class Invoice extends Model
             ->sum('amount');
 
         $facticalAmount = $debits - $refunds;
-        $this->factical_amount = max(0, min($facticalAmount, $this->amount));
+
+
+        if ($refunds > $debits) {
+//            throw new \Exception("Сумма возврата не может быть больше фактической суммы");
+            echo "ERROR: Сумма возврата не может быть больше фактической суммы";
+            return;
+        }
+
+        $this->factical_amount = $facticalAmount;
 
         // Логика статусов
         if ($refunds > 0) {
             if ($this->factical_amount >= $this->amount) {
                 $this->status = 'paid';
-            } elseif ($refunds < $debits) {
+            } elseif ($this->factical_amount > 0) {
                 $this->status = 'partially_refunded';
             } else {
                 $this->status = 'refunded';
             }
-        } elseif ($this->factical_amount >= $this->amount) {
-            $this->status = 'paid';
-        } elseif ($this->factical_amount > 0) {
-            $this->status = 'partially_paid';
         } else {
-            $this->status = 'pending';
+            if ($this->factical_amount >= $this->amount) {
+                $this->status = 'paid';
+            } elseif ($this->factical_amount > 0) {
+                $this->status = 'partially_paid';
+            } else {
+                $this->status = 'pending';
+            }
         }
 
-
-        $this->saveQuietly();
+        $this->save();
     }
+
 }
