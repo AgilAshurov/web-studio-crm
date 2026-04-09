@@ -36,7 +36,9 @@ class Invoice extends Model
 
         // Логика статусов
         if ($refunds > 0) {
-            if ($refunds < $debits) {
+            if ($this->factical_amount >= $this->amount) {
+                $this->status = 'paid';
+            } elseif ($refunds < $debits) {
                 $this->status = 'partially_refunded';
             } else {
                 $this->status = 'refunded';
@@ -48,6 +50,7 @@ class Invoice extends Model
         } else {
             $this->status = 'pending';
         }
+
 
         $this->saveQuietly();
     }
